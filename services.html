@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Services — DémarcheExpress</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Nunito+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --blue:#1a56db;--blue-hover:#1240b0;--blue-light:#e8f0fe;--dark:#0f172a;--gray:#475569;--bg:#f7f8fc;--white:#fff;--border:#e2e8f0;--radius:10px;--radius-lg:20px;--shadow:0 4px 24px rgba(26,86,219,.10); }
+    body { font-family:'Nunito Sans',system-ui,sans-serif; background:var(--bg); color:var(--dark); }
+    header { background:rgba(255,255,255,.97); border-bottom:1px solid var(--border); padding:0 2rem; display:flex; align-items:center; height:64px; gap:1.5rem; position:sticky; top:0; z-index:100; }
+    .logo { font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:1.2rem; color:var(--blue); text-decoration:none; }
+    .logo span { color:var(--dark); }
+    nav { margin-left:auto; display:flex; align-items:center; gap:1.5rem; }
+    nav a { font-size:.88rem; color:var(--gray); text-decoration:none; transition:.15s; }
+    nav a:hover { color:var(--blue); }
+    .btn-nav { background:var(--blue); color:white !important; padding:.5rem 1.1rem; border-radius:var(--radius); font-weight:600; }
+    main { max-width:1000px; margin:3rem auto; padding:0 1.5rem 4rem; }
+    .hero-txt { text-align:center; margin-bottom:3rem; }
+    .hero-txt h1 { font-family:'Plus Jakarta Sans',sans-serif; font-size:2.2rem; font-weight:800; color:var(--dark); }
+    .hero-txt p { color:var(--gray); margin-top:.75rem; font-size:1rem; }
+    .service-block { background:white; border:1px solid var(--border); border-radius:var(--radius-lg); padding:2rem; margin-bottom:1.5rem; display:grid; grid-template-columns:auto 1fr auto; gap:1.5rem; align-items:start; box-shadow:var(--shadow); }
+    .svc-icon { font-size:2.5rem; }
+    .svc-title { font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:1.15rem; color:var(--dark); margin-bottom:.4rem; }
+    .svc-desc { font-size:.88rem; color:var(--gray); line-height:1.6; }
+    .svc-includes { margin-top:.75rem; }
+    .svc-includes li { font-size:.83rem; color:var(--gray); margin-bottom:.2rem; list-style:none; padding-left:1.1rem; position:relative; }
+    .svc-includes li::before { content:'✓'; position:absolute; left:0; color:var(--blue); font-weight:700; }
+    .svc-price-box { text-align:center; background:var(--blue-light); border-radius:var(--radius-lg); padding:1rem 1.25rem; min-width:130px; }
+    .svc-from { font-size:.73rem; color:var(--gray); }
+    .svc-amount { font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:1.5rem; color:var(--blue); }
+    .svc-ttc { font-size:.72rem; color:var(--gray); }
+    .svc-cta { display:block; margin-top:.75rem; background:var(--blue); color:white; border-radius:var(--radius); padding:.5rem .9rem; font-size:.8rem; font-weight:700; text-decoration:none; text-align:center; transition:.15s; }
+    .svc-cta:hover { background:var(--blue-hover); }
+    footer { background:var(--dark); color:#94a3b8; padding:3rem 1.5rem; text-align:center; font-size:.83rem; }
+    footer a { color:#94a3b8; text-decoration:none; margin:0 .75rem; }
+    @media(max-width:600px) { .service-block { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<header>
+  <a href="index.html" class="logo">DÉMARCHE<span>EXPRESS</span></a>
+  <nav>
+    <a href="services.html" style="color:var(--blue);font-weight:600">Services</a>
+    <a href="faq.html">FAQ</a>
+    <a href="contact.html">Contact</a>
+    <a href="login-client.html" class="btn-nav">Mon espace</a>
+  </nav>
+</header>
+<main>
+  <div class="hero-txt">
+    <h1>Nos services</h1>
+    <p>Des formalités simplifiées, un accompagnement humain, des tarifs transparents.</p>
+  </div>
+
+  <div class="service-block" id="creation">
+    <div class="svc-icon">🚀</div>
+    <div>
+      <div class="svc-title">Création d'entreprise</div>
+      <div class="svc-desc">Nous gérons l'intégralité de votre immatriculation au Registre du Commerce et des Sociétés (RCS) ou au Registre National des Entreprises (RNE).</div>
+      <ul class="svc-includes">
+        <li>Rédaction des statuts (EURL/SASU)</li>
+        <li>Publication de l'annonce légale</li>
+        <li>Dépôt du dossier au greffe</li>
+        <li>Obtention de l'extrait Kbis</li>
+        <li>Suivi en temps réel dans votre espace</li>
+      </ul>
+    </div>
+    <div class="svc-price-box">
+      <div class="svc-from">À partir de</div>
+      <div class="svc-amount">149 €</div>
+      <div class="svc-ttc">HT + frais greffe</div>
+      <a href="creation-entreprise.html" class="svc-cta">Commencer →</a>
+    </div>
+  </div>
+
+  <div class="service-block" id="modification">
+    <div class="svc-icon">✏️</div>
+    <div>
+      <div class="svc-title">Modification</div>
+      <div class="svc-desc">Changement de siège social, de gérant, d'objet social, de dénomination ou d'autres mentions — nous déposons le dossier modificatif au greffe.</div>
+      <ul class="svc-includes">
+        <li>Changement de siège social</li>
+        <li>Changement de gérant / dirigeant</li>
+        <li>Modification de l'objet social</li>
+        <li>Changement de dénomination</li>
+        <li>Augmentation / réduction de capital</li>
+      </ul>
+    </div>
+    <div class="svc-price-box">
+      <div class="svc-from">À partir de</div>
+      <div class="svc-amount">99 €</div>
+      <div class="svc-ttc">HT + frais greffe</div>
+      <a href="index.html#formulaire" class="svc-cta">Demander →</a>
+    </div>
+  </div>
+
+  <div class="service-block" id="fermeture">
+    <div class="svc-icon">🔒</div>
+    <div>
+      <div class="svc-title">Fermeture / Radiation</div>
+      <div class="svc-desc">Dissolution, liquidation amiable et radiation de votre société ou entreprise individuelle auprès du greffe compétent.</div>
+      <ul class="svc-includes">
+        <li>Décision de dissolution</li>
+        <li>Publication de l'annonce légale</li>
+        <li>Dépôt de la liquidation</li>
+        <li>Radiation définitive</li>
+      </ul>
+    </div>
+    <div class="svc-price-box">
+      <div class="svc-from">À partir de</div>
+      <div class="svc-amount">199 €</div>
+      <div class="svc-ttc">HT + frais greffe</div>
+      <a href="index.html#formulaire" class="svc-cta">Demander →</a>
+    </div>
+  </div>
+
+  <div class="service-block" id="kbis">
+    <div class="svc-icon">📄</div>
+    <div>
+      <div class="svc-title">Extrait Kbis</div>
+      <div class="svc-desc">Obtention rapide de votre extrait Kbis officiel auprès du greffe du tribunal de commerce, avec ou sans apostille.</div>
+      <ul class="svc-includes">
+        <li>Kbis de moins de 3 mois</li>
+        <li>Livraison par email en PDF</li>
+        <li>Délai : 24–48h ouvrées</li>
+      </ul>
+    </div>
+    <div class="svc-price-box">
+      <div class="svc-from">À partir de</div>
+      <div class="svc-amount">29 €</div>
+      <div class="svc-ttc">TTC</div>
+      <a href="index.html#formulaire" class="svc-cta">Commander →</a>
+    </div>
+  </div>
+</main>
+<footer>
+  <p><a href="index.html">Accueil</a><a href="faq.html">FAQ</a><a href="contact.html">Contact</a><a href="mentions-legales.html">Mentions légales</a></p>
+  <p style="margin-top:.75rem">© 2026 DémarcheExpress</p>
+</footer>
+</body>
+</html>
