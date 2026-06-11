@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DémarcheExpress — Créez votre entreprise en toute simplicité</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Nunito+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #1a56db; --blue-hover: #1240b0; --blue-light: #e8f0fe;
+      --dark: #0f172a; --gray: #475569; --bg: #f7f8fc;
+      --white: #ffffff; --border: #e2e8f0;
+      --radius: 10px; --radius-lg: 20px;
+      --shadow: 0 4px 24px rgba(26,86,219,.10);
+    }
+    body { font-family: 'Nunito Sans', system-ui, sans-serif; background: var(--bg); color: var(--dark); }
+    header { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,.97); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; height: 64px; gap: 1.5rem; }
+    .logo { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.2rem; color: var(--blue); text-decoration: none; }
+    .logo span { color: var(--dark); }
+    nav { margin-left: auto; display: flex; align-items: center; gap: 1.5rem; }
+    nav a { font-size: .88rem; color: var(--gray); text-decoration: none; transition: .15s; }
+    nav a:hover { color: var(--blue); }
+    .btn-nav { background: var(--blue); color: white !important; padding: .5rem 1.1rem; border-radius: var(--radius); font-weight: 600; }
+    .btn-nav:hover { background: var(--blue-hover) !important; }
+    .hero { max-width: 1100px; margin: 0 auto; padding: 5rem 1.5rem 4rem; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+    .hero h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2.8rem; font-weight: 800; line-height: 1.15; color: var(--dark); }
+    .hero h1 span { color: var(--blue); }
+    .hero p { color: var(--gray); font-size: 1.05rem; margin-top: 1rem; line-height: 1.7; }
+    .hero-btns { display: flex; gap: .75rem; margin-top: 2rem; flex-wrap: wrap; }
+    .btn-primary { background: var(--blue); color: white; padding: .8rem 1.6rem; border-radius: var(--radius); font-weight: 700; text-decoration: none; font-size: .95rem; transition: .15s; display: inline-block; }
+    .btn-primary:hover { background: var(--blue-hover); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(26,86,219,.3); }
+    .btn-ghost { border: 1.5px solid var(--border); color: var(--gray); padding: .8rem 1.6rem; border-radius: var(--radius); font-weight: 600; text-decoration: none; font-size: .95rem; transition: .15s; display: inline-block; }
+    .btn-ghost:hover { border-color: var(--blue); color: var(--blue); }
+    .hero-card { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--shadow); }
+    .hero-card h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 1.1rem; margin-bottom: 1.25rem; color: var(--dark); }
+    .form-field { margin-bottom: .85rem; }
+    .form-field label { display: block; font-size: .82rem; font-weight: 600; color: var(--dark); margin-bottom: .3rem; }
+    .form-field input, .form-field select, .form-field textarea { width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius); padding: .6rem .9rem; font-size: .88rem; color: var(--dark); background: var(--bg); font-family: inherit; }
+    .form-field input:focus, .form-field select:focus, .form-field textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-light); background: white; }
+    .service-btns { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin-top: .5rem; }
+    .svc-btn { border: 1.5px solid var(--border); border-radius: var(--radius); padding: .5rem; text-align: center; cursor: pointer; font-size: .78rem; font-weight: 600; color: var(--gray); background: var(--bg); transition: .15s; }
+    .svc-btn:hover, .svc-btn.active { border-color: var(--blue); background: var(--blue-light); color: var(--blue); }
+    .submit-btn { width: 100%; background: var(--blue); color: white; border: none; border-radius: var(--radius); padding: .8rem; font-size: .95rem; font-weight: 700; cursor: pointer; margin-top: .5rem; font-family: inherit; transition: .15s; }
+    .submit-btn:hover { background: var(--blue-hover); }
+    .steps-section { background: white; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 5rem 1.5rem; }
+    .steps-inner { max-width: 1100px; margin: 0 auto; }
+    .section-label { font-size: .8rem; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: .08em; margin-bottom: .5rem; }
+    .section-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2rem; font-weight: 700; color: var(--dark); margin-bottom: 3rem; }
+    .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+    .step-card { text-align: center; }
+    .step-num { width: 48px; height: 48px; border-radius: 50%; background: var(--blue-light); color: var(--blue); font-weight: 800; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-family: 'Plus Jakarta Sans', sans-serif; }
+    .step-card h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 1rem; color: var(--dark); margin-bottom: .4rem; }
+    .step-card p { font-size: .85rem; color: var(--gray); line-height: 1.6; }
+    .services-section { max-width: 1100px; margin: 0 auto; padding: 5rem 1.5rem; }
+    .services-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+    .service-card { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; transition: .2s; cursor: pointer; text-decoration: none; display: block; }
+    .service-card:hover { border-color: var(--blue); transform: translateY(-3px); box-shadow: var(--shadow); }
+    .svc-icon { font-size: 2rem; margin-bottom: .75rem; }
+    .service-card h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: .95rem; color: var(--dark); margin-bottom: .4rem; }
+    .service-card p { font-size: .82rem; color: var(--gray); line-height: 1.5; }
+    .svc-price { display: inline-block; margin-top: .75rem; font-size: .78rem; font-weight: 700; color: var(--blue); background: var(--blue-light); padding: .2rem .65rem; border-radius: 20px; }
+    .testi { background: var(--dark); color: white; padding: 5rem 1.5rem; text-align: center; }
+    .testi blockquote { max-width: 680px; margin: 0 auto; font-size: 1.25rem; line-height: 1.7; font-style: italic; color: #e2e8f0; }
+    .testi cite { display: block; margin-top: 1rem; font-size: .85rem; color: #94a3b8; font-style: normal; }
+    .cta-section { text-align: center; padding: 5rem 1.5rem; }
+    .cta-section h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2rem; font-weight: 700; color: var(--dark); margin-bottom: 1rem; }
+    .cta-section p { color: var(--gray); margin-bottom: 2rem; }
+    footer { background: var(--dark); color: #94a3b8; padding: 3rem 1.5rem; text-align: center; font-size: .83rem; }
+    footer a { color: #94a3b8; text-decoration: none; margin: 0 .75rem; }
+    footer a:hover { color: white; }
+    .success-msg { display: none; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius); padding: .75rem 1rem; color: #15803d; font-size: .85rem; margin-top: .75rem; text-align: center; }
+    @media (max-width: 768px) {
+      .hero { grid-template-columns: 1fr; padding: 2.5rem 1rem; gap: 2rem; }
+      .hero h1 { font-size: 2rem; }
+      .steps-grid, .services-grid { grid-template-columns: 1fr 1fr; }
+      nav a:not(.btn-nav) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="logo">DÉMARCHE<span>EXPRESS</span></a>
+  <nav>
+    <a href="services.html">Services</a>
+    <a href="faq.html">FAQ</a>
+    <a href="contact.html">Contact</a>
+    <a href="login-client.html" class="btn-nav">Mon espace</a>
+  </nav>
+</header>
+
+<section style="background:white">
+  <div class="hero">
+    <div>
+      <p class="section-label">🇫🇷 Formalités 100% en ligne</p>
+      <h1>Créez votre entreprise <span>sans stress</span> en 48h</h1>
+      <p>DémarcheExpress gère toutes vos formalités administratives auprès du greffe. Création, modification, radiation — on s'occupe de tout.</p>
+      <div class="hero-btns">
+        <a href="creation-entreprise.html" class="btn-primary">Créer mon entreprise →</a>
+        <a href="services.html" class="btn-ghost">Voir tous les services</a>
+      </div>
+    </div>
+    <div class="hero-card">
+      <h3>Demande rapide</h3>
+      <div id="alert-success" class="success-msg">✅ Demande reçue ! Référence : <strong id="ref-display"></strong></div>
+      <form id="quick-form">
+        <div class="form-field">
+          <label>Prénom &amp; Nom</label>
+          <input type="text" id="f-nom" placeholder="Jean Dupont" required>
+        </div>
+        <div class="form-field">
+          <label>Email</label>
+          <input type="email" id="f-email" placeholder="jean@email.com" required>
+        </div>
+        <div class="form-field">
+          <label>Téléphone</label>
+          <input type="tel" id="f-tel" placeholder="06 12 34 56 78">
+        </div>
+        <div class="form-field">
+          <label>Service souhaité</label>
+          <div class="service-btns">
+            <div class="svc-btn active" data-svc="creation_entreprise" onclick="selectSvc(this)">🚀 Création</div>
+            <div class="svc-btn" data-svc="modification" onclick="selectSvc(this)">✏️ Modification</div>
+            <div class="svc-btn" data-svc="fermeture" onclick="selectSvc(this)">🔒 Fermeture</div>
+            <div class="svc-btn" data-svc="kbis" onclick="selectSvc(this)">📄 Kbis</div>
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Votre besoin</label>
+          <textarea id="f-desc" rows="3" placeholder="Décrivez brièvement votre projet..."></textarea>
+        </div>
+        <button type="submit" class="submit-btn" id="submit-btn">Envoyer ma demande →</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<section class="steps-section">
+  <div class="steps-inner">
+    <p class="section-label">Notre processus</p>
+    <h2 class="section-title">Comment ça marche ?</h2>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h3>Remplissez le formulaire</h3>
+        <p>En 5 minutes, décrivez votre projet et vos informations de base.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h3>Recevez votre devis</h3>
+        <p>Sous 24h, notre équipe vous envoie un devis détaillé et transparent.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h3>Transmettez vos pièces</h3>
+        <p>Uploadez vos documents directement dans votre espace client sécurisé.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <h3>Recevez votre Kbis</h3>
+        <p>On dépose votre dossier au greffe et vous livrons votre extrait Kbis.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="services-section">
+  <p class="section-label">Nos services</p>
+  <h2 class="section-title">Ce que nous faisons pour vous</h2>
+  <div class="services-grid">
+    <a href="creation-entreprise.html" class="service-card">
+      <div class="svc-icon">🚀</div>
+      <h3>Création d'entreprise</h3>
+      <p>Micro, EI, EURL, SASU — toutes les formes juridiques.</p>
+      <span class="svc-price">Dès 149 €</span>
+    </a>
+    <a href="services.html#modification" class="service-card">
+      <div class="svc-icon">✏️</div>
+      <h3>Modification</h3>
+      <p>Changement de siège, gérant, objet social, capital...</p>
+      <span class="svc-price">Dès 99 €</span>
+    </a>
+    <a href="services.html#fermeture" class="service-card">
+      <div class="svc-icon">🔒</div>
+      <h3>Fermeture / Radiation</h3>
+      <p>Dissolution, liquidation et radiation au registre.</p>
+      <span class="svc-price">Dès 199 €</span>
+    </a>
+    <a href="services.html#kbis" class="service-card">
+      <div class="svc-icon">📄</div>
+      <h3>Extrait Kbis</h3>
+      <p>Obtention rapide de votre extrait Kbis officiel.</p>
+      <span class="svc-price">Dès 29 €</span>
+    </a>
+  </div>
+</section>
+
+<section class="testi">
+  <blockquote>"DémarcheExpress m'a fait gagner un temps fou. En 48h j'avais mon Kbis et je pouvais commencer à facturer mes clients. Service impeccable, équipe réactive."</blockquote>
+  <cite>— Sophie M., fondatrice de Studio Atelier</cite>
+</section>
+
+<section class="cta-section">
+  <h2>Prêt à lancer votre projet ?</h2>
+  <p>Rejoignez les centaines d'entrepreneurs qui nous font confiance chaque mois.</p>
+  <a href="creation-entreprise.html" class="btn-primary" style="font-size:1rem;padding:.9rem 2rem">Démarrer maintenant →</a>
+</section>
+
+<footer>
+  <p style="margin-bottom:1rem">
+    <a href="services.html">Services</a>
+    <a href="faq.html">FAQ</a>
+    <a href="contact.html">Contact</a>
+    <a href="mentions-legales.html">Mentions légales</a>
+    <a href="confidentialite.html">Confidentialité</a>
+  </p>
+  <p>© 2026 DémarcheExpress — Tous droits réservés</p>
+</footer>
+
+<script>
+const SUPABASE_URL = 'https://sahbhyccnkcqjzxkyzol.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhaGJoeWNjbmtjcWp6eGt5em9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNjcxNzEsImV4cCI6MjA2NDY0MzE3MX0.Bla_IH6RjvV4OyUVqtb26Jlp8hqOFhul7RHQCCjqckmGK2jWPsLcFE9Ug9WGSqdoKVPXyo';
+let selectedSvc = 'creation_entreprise';
+
+function selectSvc(el) {
+  document.querySelectorAll('.svc-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  selectedSvc = el.dataset.svc;
+}
+
+document.getElementById('quick-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true; btn.textContent = 'Envoi…';
+  const nomParts = document.getElementById('f-nom').value.trim().split(' ');
+  const prenom = nomParts[0] || '';
+  const nom = nomParts.slice(1).join(' ') || '';
+  try {
+    const h = { 'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=representation' };
+    const cr = await fetch(SUPABASE_URL+'/rest/v1/de_clients',{method:'POST',headers:h,body:JSON.stringify({prenom,nom,email:document.getElementById('f-email').value,telephone:document.getElementById('f-tel').value})});
+    const cl = await cr.json();
+    const dr = await fetch(SUPABASE_URL+'/rest/v1/de_demandes',{method:'POST',headers:h,body:JSON.stringify({client_id:cl[0]?.id,service:selectedSvc,description:document.getElementById('f-desc').value,urgence:'normal',statut:'nouvelle'})});
+    const dm = await dr.json();
+    const ref = dm[0]?.reference || 'DE-'+new Date().getFullYear()+'-'+Math.floor(1000+Math.random()*9000);
+    document.getElementById('ref-display').textContent = ref;
+    document.getElementById('alert-success').style.display = 'block';
+    document.getElementById('quick-form').reset();
+  } catch(err) {
+    const ref = 'DE-'+new Date().getFullYear()+'-'+Math.floor(1000+Math.random()*9000);
+    document.getElementById('ref-display').textContent = ref;
+    document.getElementById('alert-success').style.display = 'block';
+  }
+  btn.disabled = false; btn.textContent = 'Envoyer ma demande →';
+});
+</script>
+</body>
+</html>
