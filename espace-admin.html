@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administration — DémarcheExpress</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Nunito+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --blue:#1a56db;--blue-hover:#1240b0;--blue-light:#e8f0fe;--dark:#0f172a;--gray:#475569;--bg:#f7f8fc;--white:#fff;--border:#e2e8f0;--radius:10px;--radius-lg:20px; }
+    body { font-family:'Nunito Sans',system-ui,sans-serif; background:var(--bg); color:var(--dark); min-height:100vh; }
+    header { background:white; border-bottom:1px solid var(--border); padding:0 1.5rem; display:flex; align-items:center; height:64px; gap:1rem; position:sticky; top:0; z-index:50; }
+    .logo { font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:1.1rem; color:var(--blue); text-decoration:none; }
+    .logo span { color:var(--dark); }
+    .admin-badge { background:#fef3c7; color:#92400e; font-size:.72rem; font-weight:700; padding:.2rem .6rem; border-radius:20px; border:1px solid #fde68a; }
+    .user-info { margin-left:auto; display:flex; align-items:center; gap:.75rem; }
+    .btn-logout { font-size:.82rem; color:var(--gray); border:1px solid var(--border); border-radius:var(--radius); padding:.35rem .8rem; cursor:pointer; background:none; font-family:inherit; transition:.15s; }
+    .btn-logout:hover { border-color:#ef4444; color:#ef4444; }
+    .layout { display:grid; grid-template-columns:240px 1fr; min-height:calc(100vh - 64px); }
+    .sidebar { background:var(--dark); padding:1.5rem 0; }
+    .sidebar-item { display:flex; align-items:center; gap:.65rem; padding:.7rem 1.25rem; font-size:.87rem; color:#94a3b8; cursor:pointer; transition:.15s; border-left:3px solid transparent; }
+    .sidebar-item:hover { color:white; background:rgba(255,255,255,.06); }
+    .sidebar-item.active { color:white; border-left-color:var(--blue); background:rgba(26,86,219,.15); }
+    .sidebar-section { font-size:.7rem; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:.08em; padding:.5rem 1.25rem; margin-top:1rem; }
+    .content { padding:2rem; }
+    .page { display:none; }
+    .page.active { display:block; }
+    .page-title { font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:1.4rem; color:var(--dark); margin-bottom:1.5rem; }
+    .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:2rem; }
+    .kpi-card { background:white; border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.25rem; }
+    .kpi-label { font-size:.78rem; color:var(--gray); font-weight:600; margin-bottom:.4rem; }
+    .kpi-value { font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:2rem; color:var(--dark); }
+    .kpi-sub { font-size:.75rem; color:#94a3b8; margin-top:.2rem; }
+    .table-wrap { background:white; border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+    table { width:100%; border-collapse:collapse; }
+    th { background:var(--dark); color:white; padding:.75rem 1rem; text-align:left; font-size:.78rem; font-weight:700; letter-spacing:.03em; }
+    td { padding:.75rem 1rem; font-size:.83rem; color:var(--gray); border-bottom:1px solid var(--border); }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:#f8fafc; }
+    .badge { display:inline-block; padding:.22rem .6rem; border-radius:20px; font-size:.71rem; font-weight:700; }
+    .badge-nouvelle { background:#fef3c7; color:#92400e; }
+    .badge-en_etude { background:#dbeafe; color:#1e40af; }
+    .badge-devis_envoye { background:#ede9fe; color:#5b21b6; }
+    .badge-devis_valide { background:#d1fae5; color:#065f46; }
+    .badge-docs_attente { background:#fce7f3; color:#9d174d; }
+    .badge-en_traitement { background:#dbeafe; color:#1e40af; }
+    .badge-termine { background:#d1fae5; color:#065f46; }
+    .badge-annulee { background:#fee2e2; color:#991b1b; }
+    .badge-urgent { background:#fef3c7; color:#92400e; }
+    .badge-tres_urgent { background:#fee2e2; color:#991b1b; }
+    .action-btn { background:none; border:1px solid var(--border); border-radius:6px; padding:.25rem .6rem; font-size:.75rem; cursor:pointer; color:var(--gray); font-family:inherit; transition:.15s; }
+    .action-btn:hover { border-color:var(--blue); color:var(--blue); }
+    .filter-row { display:flex; gap:.75rem; margin-bottom:1rem; flex-wrap:wrap; }
+    .filter-select { border:1.5px solid var(--border); border-radius:var(--radius); padding:.45rem .8rem; font-size:.82rem; color:var(--dark); background:white; font-family:inherit; cursor:pointer; }
+    .filter-select:focus { outline:none; border-color:var(--blue); }
+    .loading { display:flex; align-items:center; justify-content:center; padding:3rem; color:var(--gray); font-size:.9rem; gap:.75rem; }
+    .spinner { width:20px; height:20px; border:2.5px solid var(--border); border-top-color:var(--blue); border-radius:50%; animation:spin .7s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    /* MODAL */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:200; align-items:center; justify-content:center; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:white; border-radius:var(--radius-lg); padding:2rem; width:100%; max-width:560px; max-height:85vh; overflow-y:auto; position:relative; }
+    .modal-title { font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:1.15rem; color:var(--dark); margin-bottom:1.25rem; }
+    .modal-close { position:absolute; top:1rem; right:1rem; background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--gray); }
+    .field { margin-bottom:.85rem; }
+    .field label { display:block; font-size:.82rem; font-weight:600; color:var(--dark); margin-bottom:.3rem; }
+    .field input, .field select, .field textarea { width:100%; border:1.5px solid var(--border); border-radius:var(--radius); padding:.6rem .9rem; font-size:.88rem; color:var(--dark); background:var(--bg); font-family:inherit; }
+    .field input:focus, .field select:focus, .field textarea:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-light); background:white; }
+    .btn-primary { background:var(--blue); color:white; border:none; border-radius:var(--radius); padding:.65rem 1.25rem; font-size:.88rem; font-weight:700; cursor:pointer; font-family:inherit; transition:.15s; }
+    .btn-primary:hover { background:var(--blue-hover); }
+    .devis-grid { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; }
+    .devis-total { background:var(--blue-light); border-radius:var(--radius); padding:.85rem 1rem; display:flex; justify-content:space-between; align-items:center; margin-top:.5rem; }
+    .devis-total-label { font-weight:700; color:var(--dark); font-size:.9rem; }
+    .devis-total-value { font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:1.2rem; color:var(--blue); }
+    .detail-row { display:flex; justify-content:space-between; padding:.35rem 0; border-bottom:1px solid var(--border); font-size:.84rem; }
+    .detail-row:last-child { border:none; }
+    .detail-label { color:var(--gray); }
+    .detail-value { font-weight:600; color:var(--dark); }
+  </style>
+</head>
+<body>
+<header>
+  <a href="index.html" class="logo">DÉMARCHE<span>EXPRESS</span></a>
+  <span class="admin-badge">⚙️ Administration</span>
+  <div class="user-info">
+    <span style="font-size:.83rem;color:var(--gray)" id="admin-name">Admin</span>
+    <button class="btn-logout" onclick="logout()">Déconnexion</button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-section">Tableau de bord</div>
+    <div class="sidebar-item active" onclick="showPage('dashboard',this)">📊 Vue générale</div>
+    <div class="sidebar-item" onclick="showPage('demandes',this)">🆕 Nouvelles demandes</div>
+    <div class="sidebar-item" onclick="showPage('dossiers',this)">📂 Tous les dossiers</div>
+    <div class="sidebar-section">Gestion</div>
+    <div class="sidebar-item" onclick="showPage('clients',this)">👥 Clients</div>
+    <div class="sidebar-item" onclick="showPage('documents',this)">📄 Documents</div>
+  </nav>
+
+  <main class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <h1 class="page-title">Vue générale</h1>
+      <div class="kpi-grid" id="kpi-grid">
+        <div class="kpi-card"><div class="kpi-label">Nouvelles demandes</div><div class="kpi-value" id="kpi-nouvelles">—</div><div class="kpi-sub">Non traitées</div></div>
+        <div class="kpi-card"><div class="kpi-label">Devis en attente</div><div class="kpi-value" id="kpi-devis">—</div><div class="kpi-sub">À préparer</div></div>
+        <div class="kpi-card"><div class="kpi-label">Dossiers en cours</div><div class="kpi-value" id="kpi-encours">—</div><div class="kpi-sub">Actifs</div></div>
+        <div class="kpi-card"><div class="kpi-label">Terminés ce mois</div><div class="kpi-value" id="kpi-termines">—</div><div class="kpi-sub">Ce mois-ci</div></div>
+      </div>
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:1.05rem;margin-bottom:1rem;color:var(--dark)">Demandes récentes</h2>
+      <div class="table-wrap" id="recent-table"><div class="loading"><div class="spinner"></div> Chargement…</div></div>
+    </div>
+
+    <!-- NOUVELLES DEMANDES -->
+    <div class="page" id="page-demandes">
+      <h1 class="page-title">Nouvelles demandes</h1>
+      <div class="table-wrap" id="new-table"><div class="loading"><div class="spinner"></div> Chargement…</div></div>
+    </div>
+
+    <!-- TOUS LES DOSSIERS -->
+    <div class="page" id="page-dossiers">
+      <h1 class="page-title">Tous les dossiers</h1>
+      <div class="filter-row">
+        <select class="filter-select" id="filter-statut" onchange="filterDossiers()">
+          <option value="">Tous les statuts</option>
+          <option value="nouvelle">Nouvelle demande</option>
+          <option value="en_etude">En étude</option>
+          <option value="devis_envoye">Devis envoyé</option>
+          <option value="devis_valide">Devis accepté</option>
+          <option value="docs_attente">Documents requis</option>
+          <option value="en_traitement">En traitement</option>
+          <option value="termine">Terminé</option>
+          <option value="annulee">Annulé</option>
+        </select>
+        <select class="filter-select" id="filter-service" onchange="filterDossiers()">
+          <option value="">Tous les services</option>
+          <option value="creation_entreprise">Création d'entreprise</option>
+          <option value="modification">Modification</option>
+          <option value="fermeture">Fermeture</option>
+          <option value="kbis">Kbis</option>
+        </select>
+      </div>
+      <div class="table-wrap" id="all-table"><div class="loading"><div class="spinner"></div> Chargement…</div></div>
+    </div>
+
+    <!-- CLIENTS -->
+    <div class="page" id="page-clients">
+      <h1 class="page-title">Base clients</h1>
+      <div class="table-wrap" id="clients-table"><div class="loading"><div class="spinner"></div> Chargement…</div></div>
+    </div>
+
+    <!-- DOCUMENTS -->
+    <div class="page" id="page-documents">
+      <h1 class="page-title">Documents</h1>
+      <div class="table-wrap" id="docs-table">
+        <div style="padding:2rem;text-align:center;color:var(--gray)">
+          <p style="font-size:2rem;margin-bottom:.75rem">📄</p>
+          <p>Gestion des documents disponible après connexion des dossiers.</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL DOSSIER -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2 class="modal-title" id="modal-title">Dossier</h2>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://sahbhyccnkcqjzxkyzol.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhaGJoeWNjbmtjcWp6eGt5em9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNjcxNzEsImV4cCI6MjA2NDY0MzE3MX0.Bla_IH6RjvV4OyUVqtb26Jlp8hqOFhul7RHQCCjqckmGK2jWPsLcFE9Ug9WGSqdoKVPXyo';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let allDossiers = [];
+const svcLabels = { creation_entreprise:"Création d'entreprise", modification:"Modification", fermeture:"Fermeture", kbis:"Kbis" };
+const statutLabels = { nouvelle:"Nouvelle demande", en_etude:"En étude", devis_envoye:"Devis envoyé", devis_valide:"Devis accepté", docs_attente:"Documents requis", en_traitement:"En traitement", termine:"Terminé ✅", annulee:"Annulé" };
+const urgenceLabels = { normal:"Normal", urgent:"⚡ Urgent", tres_urgent:"🔴 Très urgent" };
+
+async function init() {
+  const { data:{ session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = 'login-client.html'; return; }
+  const role = session.user.user_metadata?.role;
+  if (role !== 'admin') { window.location.href = 'login-client.html'; return; }
+  const meta = session.user.user_metadata;
+  document.getElementById('admin-name').textContent = (meta?.prenom||'') + ' ' + (meta?.nom||'');
+  await loadDashboard();
+}
+
+async function loadDashboard() {
+  const { data } = await supabase.from('de_demandes').select('*, de_clients(prenom, nom, email, telephone)').order('created_at', { ascending: false });
+  allDossiers = data || [];
+  // KPIs
+  const now = new Date(); const thisMonth = now.getMonth(); const thisYear = now.getFullYear();
+  document.getElementById('kpi-nouvelles').textContent = allDossiers.filter(d => d.statut === 'nouvelle').length;
+  document.getElementById('kpi-devis').textContent = allDossiers.filter(d => d.statut === 'en_etude').length;
+  document.getElementById('kpi-encours').textContent = allDossiers.filter(d => ['devis_valide','docs_attente','en_traitement'].includes(d.statut)).length;
+  document.getElementById('kpi-termines').textContent = allDossiers.filter(d => { const dd = new Date(d.created_at); return d.statut === 'termine' && dd.getMonth() === thisMonth && dd.getFullYear() === thisYear; }).length;
+  // Recent table
+  renderDossierTable('recent-table', allDossiers.slice(0, 10));
+}
+
+async function loadNewDemandes() {
+  renderDossierTable('new-table', allDossiers.filter(d => d.statut === 'nouvelle'));
+}
+
+async function loadAllDossiers() {
+  renderDossierTable('all-table', allDossiers);
+}
+
+function filterDossiers() {
+  const statut = document.getElementById('filter-statut').value;
+  const service = document.getElementById('filter-service').value;
+  let filtered = allDossiers;
+  if (statut) filtered = filtered.filter(d => d.statut === statut);
+  if (service) filtered = filtered.filter(d => d.service === service);
+  renderDossierTable('all-table', filtered);
+}
+
+async function loadClients() {
+  const { data } = await supabase.from('de_clients').select('*').order('created_at', { ascending: false });
+  const container = document.getElementById('clients-table');
+  if (!data || data.length === 0) { container.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--gray)">Aucun client enregistré.</div>'; return; }
+  container.innerHTML = `<table><thead><tr><th>Nom</th><th>Email</th><th>Téléphone</th><th>Inscrit le</th></tr></thead><tbody>
+    ${data.map(c => `<tr><td><strong>${c.prenom || ''} ${c.nom || ''}</strong></td><td>${c.email || '—'}</td><td>${c.telephone || '—'}</td><td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+function renderDossierTable(containerId, dossiers) {
+  const container = document.getElementById(containerId);
+  if (!dossiers || dossiers.length === 0) {
+    container.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--gray)">Aucun dossier.</div>';
+    return;
+  }
+  container.innerHTML = `<table><thead><tr><th>Référence</th><th>Client</th><th>Service</th><th>Urgence</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead><tbody>
+    ${dossiers.map(d => {
+      const client = d.de_clients || {};
+      const nom = `${client.prenom||''} ${client.nom||''}`.trim() || d.client_id?.slice(0,8) || '—';
+      const urgClass = d.urgence === 'tres_urgent' ? 'badge-tres_urgent' : d.urgence === 'urgent' ? 'badge-urgent' : '';
+      return `<tr>
+        <td><strong>${d.reference || d.id.slice(0,8).toUpperCase()}</strong></td>
+        <td>${nom}</td>
+        <td>${svcLabels[d.service] || d.service}</td>
+        <td>${urgClass ? `<span class="badge ${urgClass}">${urgenceLabels[d.urgence]}</span>` : urgenceLabels[d.urgence] || d.urgence}</td>
+        <td><span class="badge badge-${d.statut}">${statutLabels[d.statut] || d.statut}</span></td>
+        <td>${new Date(d.created_at).toLocaleDateString('fr-FR')}</td>
+        <td>
+          <button class="action-btn" onclick="openDossier('${d.id}')">Voir</button>
+          <button class="action-btn" onclick="openStatutModal('${d.id}','${d.statut}')">Statut</button>
+          <button class="action-btn" onclick="openDevisModal('${d.id}')">Devis</button>
+        </td>
+      </tr>`;
+    }).join('')}
+  </tbody></table>`;
+}
+
+function openDossier(id) {
+  const d = allDossiers.find(x => x.id === id);
+  if (!d) return;
+  const client = d.de_clients || {};
+  let desc = {};
+  try { desc = JSON.parse(d.description || '{}'); } catch(e) { desc = { activite: d.description }; }
+  document.getElementById('modal-title').textContent = d.reference || id.slice(0,8).toUpperCase();
+  document.getElementById('modal-content').innerHTML = `
+    <div style="margin-bottom:1rem">
+      <div class="detail-row"><span class="detail-label">Client</span><span class="detail-value">${client.prenom||''} ${client.nom||''}</span></div>
+      <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">${client.email||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Téléphone</span><span class="detail-value">${client.telephone||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Service</span><span class="detail-value">${svcLabels[d.service]||d.service}</span></div>
+      <div class="detail-row"><span class="detail-label">Urgence</span><span class="detail-value">${urgenceLabels[d.urgence]||d.urgence}</span></div>
+      <div class="detail-row"><span class="detail-label">Statut</span><span class="detail-value"><span class="badge badge-${d.statut}">${statutLabels[d.statut]||d.statut}</span></span></div>
+      <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${new Date(d.created_at).toLocaleString('fr-FR')}</span></div>
+      ${desc.type_structure ? `<div class="detail-row"><span class="detail-label">Structure</span><span class="detail-value">${desc.type_structure}</span></div>` : ''}
+      ${desc.secteur ? `<div class="detail-row"><span class="detail-label">Secteur</span><span class="detail-value">${desc.secteur}</span></div>` : ''}
+      ${desc.adresse ? `<div class="detail-row"><span class="detail-label">Adresse siège</span><span class="detail-value">${desc.adresse}</span></div>` : ''}
+      ${desc.activite ? `<div class="detail-row"><span class="detail-label">Activité</span><span class="detail-value">${desc.activite}</span></div>` : ''}
+      ${desc.commentaire ? `<div class="detail-row"><span class="detail-label">Commentaire</span><span class="detail-value">${desc.commentaire}</span></div>` : ''}
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="btn-primary" onclick="openStatutModal('${d.id}','${d.statut}')">Changer le statut</button>
+      <button class="btn-primary" style="background:#7c3aed" onclick="openDevisModal('${d.id}')">Créer un devis</button>
+    </div>`;
+  document.getElementById('modal').classList.add('open');
+}
+
+function openStatutModal(id, currentStatut) {
+  const statuts = ['nouvelle','en_etude','devis_envoye','devis_valide','docs_attente','en_traitement','termine','annulee'];
+  document.getElementById('modal-title').textContent = 'Changer le statut';
+  document.getElementById('modal-content').innerHTML = `
+    <div class="field">
+      <label>Nouveau statut</label>
+      <select id="new-statut">
+        ${statuts.map(s => `<option value="${s}" ${s===currentStatut?'selected':''}>${statutLabels[s]||s}</option>`).join('')}
+      </select>
+    </div>
+    <button class="btn-primary" onclick="updateStatut('${id}')">Enregistrer</button>`;
+  document.getElementById('modal').classList.add('open');
+}
+
+async function updateStatut(id) {
+  const newStatut = document.getElementById('new-statut').value;
+  await supabase.from('de_demandes').update({ statut: newStatut }).eq('id', id);
+  closeModal();
+  await loadDashboard();
+  alert('Statut mis à jour avec succès.');
+}
+
+function openDevisModal(id) {
+  document.getElementById('modal-title').textContent = 'Créer un devis';
+  document.getElementById('modal-content').innerHTML = `
+    <div class="devis-grid">
+      <div class="field"><label>Honoraires HT (€)</label><input type="number" id="dv-honoraires" placeholder="149" oninput="calcDevis()"></div>
+      <div class="field"><label>Frais de greffe (€)</label><input type="number" id="dv-greffe" placeholder="66.88" oninput="calcDevis()"></div>
+      <div class="field"><label>Annonce légale (€)</label><input type="number" id="dv-annonce" placeholder="138" oninput="calcDevis()"></div>
+      <div class="field"><label>TVA (%)</label><input type="number" id="dv-tva" value="20" oninput="calcDevis()"></div>
+    </div>
+    <div class="devis-total">
+      <span class="devis-total-label">Total TTC</span>
+      <span class="devis-total-value" id="dv-total">0,00 €</span>
+    </div>
+    <div class="field" style="margin-top:1rem"><label>Notes / commentaires</label><textarea id="dv-notes" rows="3" placeholder="Détails du devis, conditions particulières…"></textarea></div>
+    <button class="btn-primary" style="margin-top:.5rem" onclick="submitDevis('${id}')">Envoyer le devis</button>`;
+  document.getElementById('modal').classList.add('open');
+}
+
+function calcDevis() {
+  const h = parseFloat(document.getElementById('dv-honoraires').value) || 0;
+  const g = parseFloat(document.getElementById('dv-greffe').value) || 0;
+  const a = parseFloat(document.getElementById('dv-annonce').value) || 0;
+  const tva = (parseFloat(document.getElementById('dv-tva').value) || 20) / 100;
+  const ht = h + g + a;
+  const ttc = ht + (h * tva); // TVA sur honoraires seulement
+  document.getElementById('dv-total').textContent = ttc.toFixed(2).replace('.',',') + ' €';
+}
+
+async function submitDevis(demandeId) {
+  const honoraires = parseFloat(document.getElementById('dv-honoraires').value) || 0;
+  const fraisGreffe = parseFloat(document.getElementById('dv-greffe').value) || 0;
+  const annonceLegale = parseFloat(document.getElementById('dv-annonce').value) || 0;
+  const tva = parseFloat(document.getElementById('dv-tva').value) || 20;
+  const notes = document.getElementById('dv-notes').value;
+  if (!honoraires) { alert('Veuillez saisir le montant des honoraires.'); return; }
+  await supabase.from('de_devis').insert({ demande_id: demandeId, honoraires_ht: honoraires, frais_greffe: fraisGreffe, annonce_legale: annonceLegale, tva_pct: tva, notes, statut: 'envoye' });
+  await supabase.from('de_demandes').update({ statut: 'devis_envoye' }).eq('id', demandeId);
+  closeModal();
+  await loadDashboard();
+  alert('Devis envoyé et statut mis à jour.');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+document.getElementById('modal').addEventListener('click', e => { if (e.target === document.getElementById('modal')) closeModal(); });
+
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  el.classList.add('active');
+  if (name === 'demandes') loadNewDemandes();
+  if (name === 'dossiers') loadAllDossiers();
+  if (name === 'clients') loadClients();
+}
+
+async function logout() { await supabase.auth.signOut(); window.location.href = 'login-client.html'; }
+init();
+</script>
+</body>
+</html>
