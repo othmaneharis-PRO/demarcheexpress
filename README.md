@@ -1,4 +1,4 @@
-# Methodamin
+# MethodAdmin
 
 Plateforme de création et gestion d'entreprises en ligne.
 
