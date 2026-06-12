@@ -186,10 +186,22 @@ const svcLabels = { creation_entreprise:"Création d'entreprise", modification:"
 const statutLabels = { nouvelle:"Nouvelle demande", en_etude:"En étude", devis_envoye:"Devis envoyé", devis_valide:"Devis accepté", docs_attente:"Documents requis", en_traitement:"En traitement", termine:"Terminé ✅", annulee:"Annulé" };
 const urgenceLabels = { normal:"Normal", urgent:"⚡ Urgent", tres_urgent:"🔴 Très urgent" };
 
+// Échappe le HTML pour empêcher les injections XSS via les données utilisateur
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 async function init() {
   const { data:{ session } } = await supabase.auth.getSession();
   if (!session) { window.location.href = 'login-client.html'; return; }
-  const role = session.user.user_metadata?.role;
+  // SÉCURITÉ : app_metadata est défini uniquement via la clé service_role (jamais par l'utilisateur)
+  const role = session.user.app_metadata?.role;
   if (role !== 'admin') { window.location.href = 'login-client.html'; return; }
   const meta = session.user.user_metadata;
   document.getElementById('admin-name').textContent = (meta?.prenom||'') + ' ' + (meta?.nom||'');
@@ -231,7 +243,7 @@ async function loadClients() {
   const container = document.getElementById('clients-table');
   if (!data || data.length === 0) { container.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--gray)">Aucun client enregistré.</div>'; return; }
   container.innerHTML = `<table><thead><tr><th>Nom</th><th>Email</th><th>Téléphone</th><th>Inscrit le</th></tr></thead><tbody>
-    ${data.map(c => `<tr><td><strong>${c.prenom || ''} ${c.nom || ''}</strong></td><td>${c.email || '—'}</td><td>${c.telephone || '—'}</td><td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td></tr>`).join('')}
+    ${data.map(c => `<tr><td><strong>${escapeHtml(c.prenom)} ${escapeHtml(c.nom)}</strong></td><td>${escapeHtml(c.email) || '—'}</td><td>${escapeHtml(c.telephone) || '—'}</td><td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td></tr>`).join('')}
   </tbody></table>`;
 }
 
@@ -244,14 +256,15 @@ function renderDossierTable(containerId, dossiers) {
   container.innerHTML = `<table><thead><tr><th>Référence</th><th>Client</th><th>Service</th><th>Urgence</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead><tbody>
     ${dossiers.map(d => {
       const client = d.de_clients || {};
-      const nom = `${client.prenom||''} ${client.nom||''}`.trim() || d.client_id?.slice(0,8) || '—';
+      const nomRaw = `${client.prenom||''} ${client.nom||''}`.trim() || d.client_id?.slice(0,8) || '—';
+      const nom = escapeHtml(nomRaw);
       const urgClass = d.urgence === 'tres_urgent' ? 'badge-tres_urgent' : d.urgence === 'urgent' ? 'badge-urgent' : '';
       return `<tr>
-        <td><strong>${d.reference || d.id.slice(0,8).toUpperCase()}</strong></td>
+        <td><strong>${escapeHtml(d.reference) || d.id.slice(0,8).toUpperCase()}</strong></td>
         <td>${nom}</td>
-        <td>${svcLabels[d.service] || d.service}</td>
-        <td>${urgClass ? `<span class="badge ${urgClass}">${urgenceLabels[d.urgence]}</span>` : urgenceLabels[d.urgence] || d.urgence}</td>
-        <td><span class="badge badge-${d.statut}">${statutLabels[d.statut] || d.statut}</span></td>
+        <td>${escapeHtml(svcLabels[d.service] || d.service)}</td>
+        <td>${urgClass ? `<span class="badge ${urgClass}">${urgenceLabels[d.urgence]}</span>` : urgenceLabels[d.urgence] || escapeHtml(d.urgence)}</td>
+        <td><span class="badge badge-${d.statut}">${statutLabels[d.statut] || escapeHtml(d.statut)}</span></td>
         <td>${new Date(d.created_at).toLocaleDateString('fr-FR')}</td>
         <td>
           <button class="action-btn" onclick="openDossier('${d.id}')">Voir</button>
@@ -272,18 +285,18 @@ function openDossier(id) {
   document.getElementById('modal-title').textContent = d.reference || id.slice(0,8).toUpperCase();
   document.getElementById('modal-content').innerHTML = `
     <div style="margin-bottom:1rem">
-      <div class="detail-row"><span class="detail-label">Client</span><span class="detail-value">${client.prenom||''} ${client.nom||''}</span></div>
-      <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">${client.email||'—'}</span></div>
-      <div class="detail-row"><span class="detail-label">Téléphone</span><span class="detail-value">${client.telephone||'—'}</span></div>
-      <div class="detail-row"><span class="detail-label">Service</span><span class="detail-value">${svcLabels[d.service]||d.service}</span></div>
-      <div class="detail-row"><span class="detail-label">Urgence</span><span class="detail-value">${urgenceLabels[d.urgence]||d.urgence}</span></div>
-      <div class="detail-row"><span class="detail-label">Statut</span><span class="detail-value"><span class="badge badge-${d.statut}">${statutLabels[d.statut]||d.statut}</span></span></div>
+      <div class="detail-row"><span class="detail-label">Client</span><span class="detail-value">${escapeHtml(client.prenom)} ${escapeHtml(client.nom)}</span></div>
+      <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">${escapeHtml(client.email) || '—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Téléphone</span><span class="detail-value">${escapeHtml(client.telephone) || '—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Service</span><span class="detail-value">${escapeHtml(svcLabels[d.service]||d.service)}</span></div>
+      <div class="detail-row"><span class="detail-label">Urgence</span><span class="detail-value">${urgenceLabels[d.urgence]||escapeHtml(d.urgence)}</span></div>
+      <div class="detail-row"><span class="detail-label">Statut</span><span class="detail-value"><span class="badge badge-${d.statut}">${statutLabels[d.statut]||escapeHtml(d.statut)}</span></span></div>
       <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${new Date(d.created_at).toLocaleString('fr-FR')}</span></div>
-      ${desc.type_structure ? `<div class="detail-row"><span class="detail-label">Structure</span><span class="detail-value">${desc.type_structure}</span></div>` : ''}
-      ${desc.secteur ? `<div class="detail-row"><span class="detail-label">Secteur</span><span class="detail-value">${desc.secteur}</span></div>` : ''}
-      ${desc.adresse ? `<div class="detail-row"><span class="detail-label">Adresse siège</span><span class="detail-value">${desc.adresse}</span></div>` : ''}
-      ${desc.activite ? `<div class="detail-row"><span class="detail-label">Activité</span><span class="detail-value">${desc.activite}</span></div>` : ''}
-      ${desc.commentaire ? `<div class="detail-row"><span class="detail-label">Commentaire</span><span class="detail-value">${desc.commentaire}</span></div>` : ''}
+      ${desc.type_structure ? `<div class="detail-row"><span class="detail-label">Structure</span><span class="detail-value">${escapeHtml(desc.type_structure)}</span></div>` : ''}
+      ${desc.secteur ? `<div class="detail-row"><span class="detail-label">Secteur</span><span class="detail-value">${escapeHtml(desc.secteur)}</span></div>` : ''}
+      ${desc.adresse ? `<div class="detail-row"><span class="detail-label">Adresse siège</span><span class="detail-value">${escapeHtml(desc.adresse)}</span></div>` : ''}
+      ${desc.activite ? `<div class="detail-row"><span class="detail-label">Activité</span><span class="detail-value">${escapeHtml(desc.activite)}</span></div>` : ''}
+      ${desc.commentaire ? `<div class="detail-row"><span class="detail-label">Commentaire</span><span class="detail-value">${escapeHtml(desc.commentaire)}</span></div>` : ''}
     </div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap">
       <button class="btn-primary" onclick="openStatutModal('${d.id}','${d.statut}')">Changer le statut</button>
