@@ -108,15 +108,15 @@
       <form id="quick-form">
         <div class="form-field">
           <label>Prénom &amp; Nom</label>
-          <input type="text" id="f-nom" placeholder="Jean Dupont" required>
+          <input type="text" id="f-nom" maxlength="120" placeholder="Jean Dupont" required>
         </div>
         <div class="form-field">
           <label>Email</label>
-          <input type="email" id="f-email" placeholder="jean@email.com" required>
+          <input type="email" id="f-email" maxlength="120" placeholder="jean@email.com" required>
         </div>
         <div class="form-field">
           <label>Téléphone</label>
-          <input type="tel" id="f-tel" placeholder="06 12 34 56 78">
+          <input type="tel" id="f-tel" maxlength="20" placeholder="06 12 34 56 78">
         </div>
         <div class="form-field">
           <label>Service souhaité</label>
@@ -129,7 +129,7 @@
         </div>
         <div class="form-field">
           <label>Votre besoin</label>
-          <textarea id="f-desc" rows="3" placeholder="Décrivez brièvement votre projet..."></textarea>
+          <textarea id="f-desc" rows="3" maxlength="1000" placeholder="Décrivez brièvement votre projet..."></textarea>
         </div>
         <button type="submit" class="submit-btn" id="submit-btn">Envoyer ma demande →</button>
       </form>
@@ -232,16 +232,30 @@ function selectSvc(el) {
 
 document.getElementById('quick-form').addEventListener('submit', async (e) => {
   e.preventDefault();
+  const nomComplet = document.getElementById('f-nom').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  if (!nomComplet || !email) { alert('Veuillez renseigner votre nom et votre email.'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Veuillez saisir une adresse email valide.'); return; }
+
   const btn = document.getElementById('submit-btn');
   btn.disabled = true; btn.textContent = 'Envoi…';
-  const nomParts = document.getElementById('f-nom').value.trim().split(' ');
+  const nomParts = nomComplet.split(' ');
   const prenom = nomParts[0] || '';
-  const nom = nomParts.slice(1).join(' ') || '';
+  const nom = nomParts.slice(1).join(' ') || prenom;
   try {
     const h = { 'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=representation' };
-    const cr = await fetch(SUPABASE_URL+'/rest/v1/de_clients',{method:'POST',headers:h,body:JSON.stringify({prenom,nom,email:document.getElementById('f-email').value,telephone:document.getElementById('f-tel').value})});
-    const cl = await cr.json();
-    const dr = await fetch(SUPABASE_URL+'/rest/v1/de_demandes',{method:'POST',headers:h,body:JSON.stringify({client_id:cl[0]?.id,service:selectedSvc,description:document.getElementById('f-desc').value,urgence:'normal',statut:'nouvelle'})});
+
+    // Créer / récupérer le client (upsert sur l'email)
+    const cr = await fetch(SUPABASE_URL+'/rest/v1/de_clients?on_conflict=email',{method:'POST',headers:{...h,'Prefer':'return=representation,resolution=merge-duplicates'},body:JSON.stringify({prenom,nom,email,telephone:document.getElementById('f-tel').value})});
+    let clientId = null;
+    if (cr.ok) { const cl = await cr.json(); clientId = Array.isArray(cl) ? cl[0]?.id : null; }
+    if (!clientId) {
+      const lookup = await fetch(SUPABASE_URL+'/rest/v1/de_clients?email=eq.'+encodeURIComponent(email)+'&select=id&order=created_at.desc&limit=1', { headers: h });
+      if (lookup.ok) { const lk = await lookup.json(); clientId = Array.isArray(lk) ? lk[0]?.id : null; }
+    }
+
+    const dr = await fetch(SUPABASE_URL+'/rest/v1/de_demandes',{method:'POST',headers:h,body:JSON.stringify({client_id:clientId,service:selectedSvc,description:document.getElementById('f-desc').value,urgence:'normal',statut:'nouvelle'})});
+    if (!dr.ok) throw new Error('insert demande failed');
     const dm = await dr.json();
     const ref = dm[0]?.reference || 'DE-'+new Date().getFullYear()+'-'+Math.floor(1000+Math.random()*9000);
     document.getElementById('ref-display').textContent = ref;
